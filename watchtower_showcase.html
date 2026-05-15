@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Watchtower — AI Job Hunt Agent by Akash Katakam</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --text-muted: #555570;
+    --mono: 'Space Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 80px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .blink {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent3);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(52px, 8vw, 100px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 32px;
+  }
+
+  .hero h1 .line1 { color: var(--text); }
+  .hero h1 .line2 {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-desc {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  }
+
+  .btn-primary:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,212,255,0.3);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 27px;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-num {
+    font-family: var(--display);
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* LIVE TERMINAL */
+  .terminal-section {
+    padding: 0 80px 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .terminal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 800px;
+  }
+
+  .terminal-bar {
+    background: var(--surface2);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #28c840; }
+
+  .terminal-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .terminal-body {
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    min-height: 200px;
+  }
+
+  .t-dim { color: var(--text-muted); }
+  .t-accent { color: var(--accent); }
+  .t-green { color: var(--accent3); }
+  .t-warn { color: var(--warn); }
+  .t-danger { color: var(--danger); }
+  .t-purple { color: #a78bfa; }
+
+  .t-line {
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 100px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 480px;
+    font-weight: 300;
+    margin-bottom: 56px;
+  }
+
+  /* HOW IT WORKS */
+  #how { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  .flow-card {
+    background: var(--bg);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+
+  .flow-card:hover { background: var(--surface2); }
+
+  .flow-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .flow-card:hover::before { opacity: 1; }
+
+  .flow-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  .flow-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .flow-card h3 {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .flow-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .flow-card .tool-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 3px 8px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+
+  /* TECH STACK */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .tech-card {
+    padding: 24px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .tech-card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(124,58,237,0.1);
+  }
+
+  .tech-card .tech-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+  .tech-card h3 { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.05em; }
+  .tech-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  .tech-free {
+    position: absolute;
+    top: 12px; right: 12px;
+    padding: 2px 7px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent3);
+    letter-spacing: 0.05em;
+  }
+
+  /* RESULTS */
+  #results { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .result-big {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .result-card {
+    padding: 28px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+  }
+
+  .result-card .num {
+    font-family: var(--display);
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .result-card .label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .alert-feed {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .alert-feed-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .alert-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .alert-badge {
+    padding: 2px 7px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .badge-urgent { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; }
+  .badge-routine { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); color: var(--accent); }
+
+  .alert-content { flex: 1; }
+  .alert-subject { font-size: 12px; color: var(--text); margin-bottom: 3px; line-height: 1.4; }
+  .alert-meta { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 64px;
+    align-items: center;
+  }
+
+  .about-card {
+    padding: 40px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+  }
+
+  .about-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+  }
+
+  .profile-name {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .profile-role {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+
+  .profile-bio {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .skill-tag {
+    padding: 4px 10px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.25);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #a78bfa;
+    letter-spacing: 0.06em;
+  }
+
+  .links-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .link-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .link-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .projects-list { display: flex; flex-direction: column; gap: 16px; }
+
+  .project-item {
+    padding: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .project-item:hover { border-color: rgba(0,212,255,0.3); background: var(--surface2); }
+
+  .project-item h4 {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .project-item p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  .project-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .ptag { padding: 2px 7px; background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.15); font-family: var(--mono); font-size: 8px; color: var(--accent); }
+
+  /* FOOTER */
+  footer {
+    padding: 48px 80px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .footer-left span { color: var(--accent); }
+
+  .footer-right { display: flex; gap: 24px; }
+  .footer-link {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    transition: color 0.2s;
+  }
+  .footer-link:hover { color: var(--accent); }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 80px;
+  }
+
+  /* ANIMATIONS */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* SCANLINE */
+  .scanline {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: rgba(0,212,255,0.15);
+    animation: scanline 6s linear infinite;
+    pointer-events: none;
+    z-index: 200;
+  }
+
+  @keyframes scanline {
+    0% { top: -2px; }
+    100% { top: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<nav>
+  <div class="nav-logo">// THE_WATCHTOWER v1.0</div>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#tech">Tech Stack</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">
+    <span class="blink"></span>
+    Live · Running 24/7 · May 2026
+  </div>
+  <h1>
+    <div class="line1">THE</div>
+    <div class="line2">WATCHTOWER</div>
+  </h1>
+  <p class="hero-desc">
+    An autonomous AI agent that monitors your Gmail 24/7, classifies emails with LLM intelligence, 
+    and sends instant Discord alerts for job opportunities — even while you sleep.
+  </p>
+  <div class="hero-cta">
+    <a href="https://github.com/akashkatakam-2004/watchtower" class="btn-primary" target="_blank">
+      ↗ View on GitHub
+    </a>
+    <a href="#how" class="btn-secondary">
+      How It Works →
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num">10+</span>
+      <span class="stat-label">Days Running</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">30+</span>
+      <span class="stat-label">Opportunities Caught</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">2hr</span>
+      <span class="stat-label">Scan Interval</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">₹0</span>
+      <span class="stat-label">Total Cost</span>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE TERMINAL -->
+<div class="terminal-section">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="terminal-title">watchtower.py — Railway Cloud</span>
+    </div>
+    <div class="terminal-body" id="terminal">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">// Architecture</div>
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-desc">Six components working in harmony — fully autonomous, no manual trigger needed.</p>
+
+  <div class="flow-grid">
+    <div class="flow-card fade-up">
+      <div class="flow-num">01 / TRIGGER</div>
+      <span class="flow-icon">⏰</span>
+      <h3>Auto-Schedule</h3>
+      <p>APScheduler fires scan_emails() every 2 hours automatically. Runs 24/7 on Railway cloud even when your PC is off.</p>
+      <span class="tool-tag">APScheduler · Python</span>
+    </div>
+    <div class="flow-card fade-up">
+      <div class="flow-num">02 / FETCH</div>
+      <span class="flow-icon">📧</span>
+      <h3>Gmail Reader</h3>
+      <p>Gmail API with OAuth2 fetches last 10 unread emails. Extracts subject, sender, and body from nested MIME structure.</p>
+      <span class="tool-tag">Gmail API · OAuth2</span>
+    </div>
+    <div class="flow-card fade-up">
+      <div class="flow-num">03 / CLASSIFY</div>
+      <span class="flow-icon">🧠</span>
+      <h3>AI Classifier</h3>
+      <p>Each email sent to Llama 3.1 8B via Groq API. Returns CATEGORY (URGENT/ROUTINE/IGNORE), REASON, and ACTION.</p>
+      <span class="tool-tag">Groq API · LangChain · Llama 3.1 8B</span>
+    </div>
+    <div class="flow-card fade-up">
+      <div class="flow-num">04 / REPLY</div>
+      <span class="flow-icon">✍️</span>
+      <h3>Auto-Reply</h3>
+      <p>If recruiter asks for resume/skills, LLM generates professional reply using profile data. Sends email with resume PDF attached.</p>
+      <span class="tool-tag">LangChain · Gmail API · MIME</span>
+    </div>
+    <div class="flow-card fade-up">
+      <div class="flow-num">05 / NOTIFY</div>
+      <span class="flow-icon">🔔</span>
+      <h3>Discord Alert</h3>
+      <p>Urgent emails trigger instant Discord DM with full analysis. Free forever — no expiry unlike WhatsApp sandbox.</p>
+      <span class="tool-tag">Discord Bot API · discord.py</span>
+    </div>
+    <div class="flow-card fade-up">
+      <div class="flow-num">06 / REPORT</div>
+      <span class="flow-icon">📊</span>
+      <h3>Scan Summary</h3>
+      <p>After every scan, sends Discord summary: urgent count, auto-replied count, routine count, total scanned, next scan time.</p>
+      <span class="tool-tag">Discord Bot API</span>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="section-tag">// Technology</div>
+  <h2 class="section-title">Tech Stack</h2>
+  <p class="section-desc">Built entirely with free-tier APIs and open-source tools. Total monthly cost: ₹0.</p>
+
+  <div class="tech-grid">
+    <div class="tech-card fade-up">
+      <span class="tech-free">FREE</span>
+      <span class="tech-icon">⚡</span>
+      <h3>Groq API</h3>
+      <p>llama-3.1-8b-instant for email classification and reply generation. Ultra-fast LPU inference.</p>
+    </div>
+    <div class="tech-card fade-up">
+      <span class="tech-free">FREE</span>
+      <span class="tech-icon">📬</span>
+      <h3>Gmail API</h3>
+      <p>Google Cloud OAuth2 for reading emails and sending replies with attachments.</p>
+    </div>
+    <div class="tech-card fade-up">
+      <span class="tech-free">FREE FOREVER</span>
+      <span class="tech-icon">💬</span>
+      <h3>Discord Bot</h3>
+      <p>discord.py for sending DM notifications. No expiry, no credits, unlimited messages.</p>
+    </div>
+    <div class="tech-card fade-up">
+      <span class="tech-icon">🔗</span>
+      <h3>LangChain</h3>
+      <p>ChatGroq integration for structured LLM calls with consistent output formatting.</p>
+    </div>
+    <div class="tech-card fade-up">
+      <span class="tech-free">FREE</span>
+      <span class="tech-icon">☁️</span>
+      <h3>Railway</h3>
+      <p>Cloud PaaS deployment. Auto-deploys from GitHub. Runs as background worker 24/7.</p>
+    </div>
+    <div class="tech-card fade-up">
+      <span class="tech-icon">🐍</span>
+      <h3>Python 3.12</h3>
+      <p>Core language. APScheduler for timing, asyncio for Discord, dotenv for secrets.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="section-tag">// Real Impact</div>
+  <h2 class="section-title">Live Results</h2>
+  <p class="section-desc">10 days of real-world operation. These are actual numbers from production.</p>
+
+  <div class="results-grid">
+    <div>
+      <div class="result-big">
+        <div class="result-card fade-up">
+          <div class="num" style="color: var(--accent)">30+</div>
+          <div class="label">Opportunities Detected</div>
+        </div>
+        <div class="result-card fade-up">
+          <div class="num" style="color: var(--accent3)">120+</div>
+          <div class="label">Total Scans Completed</div>
+        </div>
+        <div class="result-card fade-up">
+          <div class="num" style="color: var(--warn)">2hr</div>
+          <div class="label">Max Response Delay</div>
+        </div>
+        <div class="result-card fade-up">
+          <div class="num" style="color: #a78bfa">₹0</div>
+          <div class="label">Monthly Infrastructure Cost</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert-feed fade-up">
+      <div class="alert-feed-header">
+        <span class="blink"></span>
+        Recent Alerts — Live Feed
+      </div>
+      <div class="alert-item">
+        <span class="alert-badge badge-urgent">URGENT</span>
+        <div class="alert-content">
+          <div class="alert-subject">Interview Invite · Globik AI · Dental Annotation Role</div>
+          <div class="alert-meta">via Internshala · May 4, 2026 · 7:14 PM</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <span class="alert-badge badge-urgent">URGENT</span>
+        <div class="alert-content">
+          <div class="alert-subject">AI Internship Assessment · Reducate.ai</div>
+          <div class="alert-meta">Deadline: May 5, 2026 · 5:08 PM</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <span class="alert-badge badge-urgent">URGENT</span>
+        <div class="alert-content">
+          <div class="alert-subject">AI Internship · SystemaOps · Assessment Required</div>
+          <div class="alert-meta">Deadline: May 5, 2026 · 5:04 PM</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <span class="alert-badge badge-urgent">URGENT</span>
+        <div class="alert-content">
+          <div class="alert-subject">AI Solutions Lead · Maticlane Pvt Ltd</div>
+          <div class="alert-meta">Deadline: May 5, 2026 · 5:04 PM</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <span class="alert-badge badge-routine">ROUTINE</span>
+        <div class="alert-content">
+          <div class="alert-subject">Your application was received · TechCorp AI</div>
+          <div class="alert-meta">LinkedIn · Stored for summary</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <span class="alert-badge badge-urgent">URGENT</span>
+        <div class="alert-content">
+          <div class="alert-subject">AI Developer Role · The Ai Team</div>
+          <div class="alert-meta">Deadline: May 5, 2026 · 5:01 PM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-tag">// Developer</div>
+  <h2 class="section-title">Built By</h2>
+  <p class="section-desc">A fresher using AI to solve real job-hunting problems.</p>
+
+  <div class="about-grid">
+    <div class="about-card fade-up">
+      <div class="profile-name">Akash Katakam</div>
+      <div class="profile-role">// AI/ML Engineer · ECE Graduate · May 2026</div>
+      <p class="profile-bio">
+        B.Tech ECE graduate from Vel Tech, Chennai (CGPA 7.8). Actively building and deploying 
+        real AI systems — RAG pipelines, multi-agent frameworks, and autonomous agents. 
+        The Watchtower is built to solve my own job-hunting problem.
+      </p>
+      <div class="skills-list">
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">LangChain</span>
+        <span class="skill-tag">LangGraph</span>
+        <span class="skill-tag">FastAPI</span>
+        <span class="skill-tag">FAISS</span>
+        <span class="skill-tag">Groq API</span>
+        <span class="skill-tag">TensorFlow</span>
+        <span class="skill-tag">Docker</span>
+        <span class="skill-tag">RAG</span>
+        <span class="skill-tag">NLP</span>
+      </div>
+      <div class="links-row">
+        <a href="https://github.com/akashkatakam-2004" class="link-btn" target="_blank">⌥ GitHub</a>
+        <a href="https://huggingface.co/Akashkatakam" class="link-btn" target="_blank">⌥ HuggingFace</a>
+        <a href="https://linkedin.com/in/Akashkatakam" class="link-btn" target="_blank">⌥ LinkedIn</a>
+        <a href="mailto:akashkatakam63@gmail.com" class="link-btn">⌥ Email</a>
+      </div>
+    </div>
+
+    <div class="projects-list fade-up">
+      <div class="project-item">
+        <h4>🗼 The Watchtower — This Project</h4>
+        <p>Autonomous AI email monitoring agent. LangChain + Groq + Gmail API + Discord Bot. Running 24/7 on Railway.</p>
+        <div class="project-tags">
+          <span class="ptag">LangChain</span><span class="ptag">Groq</span>
+          <span class="ptag">Gmail API</span><span class="ptag">Discord</span><span class="ptag">Railway</span>
+        </div>
+      </div>
+      <div class="project-item">
+        <h4>📄 DocSense — RAG PDF Q&A System</h4>
+        <p>Production RAG pipeline using LangChain, FAISS, all-MiniLM-L6-v2 embeddings, Groq/Llama 3.3 70B, FastAPI with SSE streaming. Deployed on Hugging Face Spaces.</p>
+        <div class="project-tags">
+          <span class="ptag">RAG</span><span class="ptag">FAISS</span>
+          <span class="ptag">FastAPI</span><span class="ptag">Docker</span><span class="ptag">HuggingFace</span>
+        </div>
+      </div>
+      <div class="project-item">
+        <h4>🤖 JobFit AI Agent — Resume Analyzer</h4>
+        <p>LangGraph 8-node multi-agent pipeline: parsing → skill matching → fit scoring → cover letter generation. Deployed on Hugging Face Spaces.</p>
+        <div class="project-tags">
+          <span class="ptag">LangGraph</span><span class="ptag">Multi-Agent</span>
+          <span class="ptag">Groq</span><span class="ptag">HuggingFace</span>
+        </div>
+      </div>
+      <div class="project-item">
+        <h4>🌿 Plant Disease Detection</h4>
+        <p>VGG16 + XGBoost hybrid classifier on PlantVillage dataset (54K images, 38 classes). 76.85% accuracy. IEEE format research paper published.</p>
+        <div class="project-tags">
+          <span class="ptag">TensorFlow</span><span class="ptag">VGG16</span>
+          <span class="ptag">XGBoost</span><span class="ptag">IEEE Paper</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<footer>
+  <div class="footer-left">
+    <span>THE WATCHTOWER</span> · Built by Akash Katakam · May 2026<br>
+    Running on Railway · Free Infrastructure · Open Source
+  </div>
+  <div class="footer-right">
+    <a href="https://github.com/akashkatakam-2004/watchtower" class="footer-link" target="_blank">GitHub →</a>
+    <a href="mailto:akashkatakam63@gmail.com" class="footer-link">Contact →</a>
+  </div>
+</footer>
+
+<script>
+  // Terminal animation
+  const lines = [
+    { text: '🚀 Watchtower Started!', delay: 200, class: 't-green' },
+    { text: '📧 Scanning every 2 hours...', delay: 600, class: 't-dim' },
+    { text: '', delay: 900 },
+    { text: '══════════════════════════════════════', delay: 1000, class: 't-dim' },
+    { text: '🔍 Watchtower scanning emails...', delay: 1200, class: 't-accent' },
+    { text: '══════════════════════════════════════', delay: 1400, class: 't-dim' },
+    { text: '', delay: 1600 },
+    { text: '✅ Loaded Gmail token from file', delay: 1800, class: 't-green' },
+    { text: '✅ Gmail connected successfully!', delay: 2100, class: 't-green' },
+    { text: '', delay: 2300 },
+    { text: '📧 Subject: Interview Invite · Globik AI', delay: 2600, class: 't-accent' },
+    { text: '👤 From: Internshala <student@internshala.com>', delay: 2800, class: 't-dim' },
+    { text: '🤖 CATEGORY: URGENT', delay: 3200, class: 't-danger' },
+    { text: '   REASON: Interview invite with online assessment', delay: 3400, class: 't-dim' },
+    { text: '   ACTION: Complete assessment before deadline', delay: 3600, class: 't-dim' },
+    { text: '✅ Discord alert sent!', delay: 3900, class: 't-green' },
+    { text: '──────────────────────────────────────', delay: 4100, class: 't-dim' },
+    { text: '📧 Subject: AI Internship · Reducate.ai', delay: 4300, class: 't-accent' },
+    { text: '🤖 CATEGORY: URGENT', delay: 4700, class: 't-danger' },
+    { text: '✅ Discord alert sent!', delay: 5000, class: 't-green' },
+    { text: '──────────────────────────────────────', delay: 5200, class: 't-dim' },
+    { text: '', delay: 5500 },
+    { text: '📊 Scan Complete → Urgent: 2 | Routine: 8 | Total: 10', delay: 5700, class: 't-purple' },
+    { text: '📊 Summary sent to Discord ✓', delay: 6000, class: 't-green' },
+    { text: '⏰ Next scan in 2 hours...', delay: 6300, class: 't-dim' },
+  ];
+
+  const terminal = document.getElementById('terminal');
+  lines.forEach(({ text, delay, class: cls }) => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 't-line ' + (cls || '');
+      div.style.animationDelay = '0ms';
+      div.textContent = text || '\u00A0';
+      terminal.appendChild(div);
+      terminal.scrollTop = terminal.scrollHeight;
+    }, delay);
+  });
+
+  // Scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => {
+      if (el.isIntersecting) el.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
